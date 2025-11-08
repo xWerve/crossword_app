@@ -24,6 +24,7 @@ def select_sheet():
     window.title("Sheet z danymi")
     window.geometry("500x750")
 
+
     sheet = pd.read_csv('sheet.csv')
 
     table = ttk.Treeview(window, columns=("kol1", "kol2"))

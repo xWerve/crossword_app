@@ -66,7 +66,7 @@ def learn():
 def select_sheet():
     window = tk.Toplevel(root)
     window.title("Sheet z danymi")
-    window.geometry("500x750")
+    window.geometry("1000x750")
 
 
     table = ttk.Treeview(window, columns=("kol1", "kol2"))

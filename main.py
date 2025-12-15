@@ -8,60 +8,89 @@ def add_key():
     window.title("Dodawanie klucza")
     window.geometry("500x750")
 
-    L1 = tk.Label(window, text='Wprowadź hasło i klucz').pack()
+    tk.Label(window, text='Wprowadź hasło i klucz').pack(pady=10)
 
     E1 = tk.Entry(window, bd=5)
-    E1.pack()
-    E2 = tk.Entry(window, bd=5)
-    E2.pack()
+    E1.pack(pady=5)
 
+    E2 = tk.Entry(window, bd=5)
+    E2.pack(pady=5)
+
+    label_info = tk.Label(window, text="", font=("Arial", 12))
+    label_info.pack(pady=10)
 
     def take_data():
         pyt = E1.get().strip()
         odp = E2.get().strip()
 
-        duplikat = ((sheet['Pytanie'] == pyt) & (sheet['Odpowiedz'] == odp)).any()
-
         if pyt == "" or odp == "":
-            messagebox.showwarning("Błąd", "Wpisz oba pola!")
+            label_info.config(text="❌ Wpisz oba pola")
             return
 
+        duplikat = ((sheet['Pytanie'] == pyt) & (sheet['Odpowiedz'] == odp)).any()
+
         if duplikat:
-            messagebox.showinfo("Informacja", "Ten wpis już istnieje w arkuszu.")
+            label_info.config(text="⚠️ Ten wpis już istnieje")
         else:
             sheet.loc[len(sheet)] = [pyt, odp]
             sheet.to_csv('sheet.csv', index=False)
-            messagebox.showinfo("Sukces", "Dodano nowe hasło do arkusza!")
-            window.destroy()
+            label_info.config(text="✅ Zapisano poprawnie")
 
-    B1 = tk.Button(window, text='Zatwierdź', command=take_data).pack(pady=10)
+            # czyszczenie pól
+            E1.delete(0, tk.END)
+            E2.delete(0, tk.END)
+            E1.focus()
+
+    tk.Button(window, text='Zatwierdź', command=take_data).pack(pady=10)
+
 
 def learn():
     window = tk.Toplevel(root)
     window.title("Nauka słówek")
     window.geometry("500x750")
 
-    L1 = tk.Label(window, text="Wprowadź odpowiedź na podane pytanie: ").pack()
-    rand_index = random.randint(a=0, b=len(sheet))
-    pyt = sheet.iloc[rand_index]['Pytanie']
-    odp = sheet.iloc[rand_index]['Odpowiedz']
-    L2 = tk.Label(window, text=f"{pyt}").pack()
+    label_pyt = tk.Label(window, font=("Arial", 16))
+    label_pyt.pack(pady=20)
+
     E1 = tk.Entry(window, bd=5)
     E1.pack()
+
+    label_info = tk.Label(window, text="", font=("Arial", 12))
+    label_info.pack(pady=10)
+
+    def new_word():
+        nonlocal pyt, odp
+        rand_index = random.randint(0, len(sheet) - 1)
+        pyt = sheet.iloc[rand_index]['Pytanie']
+        odp = sheet.iloc[rand_index]['Odpowiedz']
+
+        label_pyt.config(text=pyt)
+        E1.delete(0, tk.END)
+        label_info.config(text="")
+        E1.focus()
 
     def take_data():
         odp_user = " ".join(E1.get().split())
         if odp_user == "":
             messagebox.showwarning("Błąd", "Wpisz odpowiedź!")
             return
-        if odp_user != odp:
-            messagebox.showinfo("Informacja", "Błędne hasło!")
-        else:
-            messagebox.showinfo("Informacja", "Poprawne hasło!")
 
-    B1 = tk.Button(window, text='Zatwierdź', command=take_data).pack(pady=10)
+        if odp_user == odp:
+            label_info.config(text="✅ Poprawna odpowiedź")
+        else:
+            label_info.config(text=f"❌ Błędna odpowiedź\nPoprawna: {odp}")
+
+        # po 5 sekundach nowe hasło
+        window.after(2000, new_word)
+
+    tk.Button(window, text='Zatwierdź', command=take_data).pack(pady=10)
+
+    # pierwsze hasło
+    pyt = odp = ""
+    new_word()
 
     window.mainloop()
+
 
 def select_sheet():
     window = tk.Toplevel(root)
